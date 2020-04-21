@@ -13,11 +13,11 @@ type Router struct {
 
 type RouterAPI interface {
 	IRouter
-	GetOne(condition map[string]string, pointer interface{}) error
-	GetAll(codition map[string]string, pointer interface{}) error
-	Save(data interface{}) error
-	Update(condition map[string]string, data interface{}) error
-	Delete(condition map[string]string) bool
+	Get(w http.ResponseWriter, r *http.Request)
+	GetAll(w http.ResponseWriter, r *http.Request)
+	Post(w http.ResponseWriter, r *http.Request)
+	Put(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 }
 type IRouter interface {
 	SetupRouter(server *http.ServeMux)
