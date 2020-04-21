@@ -79,6 +79,28 @@ func (storage *VideoStorage) FindOne(condition map[string]string, pointer interf
 	return nil
 }
 
+func (storage *VideoStorage) FindByUser(id string, pointer interface{}) error {
+	if videos, ok := pointer.(*[]Video); ok {
+		stmt, err := storage.conn.Prepare("SELECT * FROM videos WHERE user_id = ?  ")
+		CheckError(err)
+
+		rows, err := stmt.Query(id)
+		CheckError(err)
+		for rows.Next() {
+			video := Video{}
+			err := rows.Scan(&video.ID, &video.URL, &video.Likes, &video.Dislikes, &video.UserID, &video.Title, &video.Cover, &video.CreatedAt)
+			CheckError(err)
+
+			*videos = append(*videos, video)
+		}
+
+		pointer = &videos
+		return nil
+
+	}
+
+	return errors.New("Invalid user slice pointer ")
+}
 func (storage *VideoStorage) Save(data interface{}) error {
 	if video, ok := data.(*Video); ok {
 		stmt, err := storage.conn.Prepare("INSERT INTO videos (url, likes, dislikes, user_id,  title, cover) VALUES (? ,? , ? , ?, ? , ? )")
