@@ -3,7 +3,7 @@ package models
 import "database/sql"
 
 type IStorage interface {
-	GetConnection(*sql.Conn)
+	GetConnection(*sql.DB)
 }
 
 type ICRUDModel interface {
