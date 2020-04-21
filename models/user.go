@@ -1,6 +1,11 @@
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+
+	_ "github.com/go-sql-driver/mysql"
+)
 
 type User struct {
 	BaseModel
@@ -14,42 +19,72 @@ type UserStorage struct {
 	conn *sql.DB
 }
 
+func NewUserStorage() *UserStorage {
+	conn, err := sql.Open("mysql", "root@/videotube")
+
+	CheckError(err)
+
+	return &UserStorage{
+		conn: conn,
+	}
+
+}
+
 func (storage *UserStorage) GetConnection(conn *sql.DB) {
 	storage.conn = conn
 }
 
-func (storage *UserStorage) Find(condition map[string]string, pointer interface{}) error {
-	stmt, err := storage.conn.Prepare("SELECT * FROM USERS WHERE ")
+func (storage *UserStorage) Find(pointer interface{}) error {
+	stmt, err := storage.conn.Prepare("SELECT * FROM users  ")
 	CheckError(err)
 
 	rows, err := stmt.Query()
 	CheckError(err)
-	users := make([]*User, 0)
-	for rows.Next() {
-		var user *User
-		err := rows.Scan(user.ID, user.Username, user.Email, user.Password, user.Birthdate)
-		CheckError(err)
-		users = append(users, user)
+
+	if users, ok := pointer.(*[]User); ok {
+		for rows.Next() {
+			user := User{}
+			err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Birthdate)
+			CheckError(err)
+
+			*users = append(*users, user)
+		}
+
+		pointer = &users
+		return nil
+
 	}
-	pointer = users
-	return nil
+
+	return errors.New("Invalid user slice pointer ")
+
 }
 
 func (storage *UserStorage) FindOne(condition map[string]string, pointer interface{}) error {
-	stmt, err := storage.conn.Prepare("SELECT * FROM USERS WHERE username = ? AND password = ?")
 
+	stmt, err := storage.conn.Prepare("SELECT * FROM users WHERE username = ? AND password = ?")
+	CheckError(err)
 	rows, err := stmt.Query(condition["username"], condition["password"])
 	CheckError(err)
-	var user *User
-	rows.Scan(user.ID, user.Username, user.Email, user.Password, user.Birthdate)
-	pointer = user
+
+	if user, ok := pointer.(*User); ok {
+		for rows.Next() {
+			err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Birthdate)
+			CheckError(err)
+
+			pointer = user
+			break
+		}
+
+	}
+
 	return nil
 }
 
 func (storage *UserStorage) Save(data interface{}) error {
-	if user, ok := data.(User); ok {
-		stmt, err := storage.conn.Prepare("INSERT INTO USERS (username, email, password, birthdate) VALUES (? ,? , ? , ? )")
+	if user, ok := data.(*User); ok {
+		stmt, err := storage.conn.Prepare("INSERT INTO users (username, email, password, birthdate) VALUES (? ,? , ? , ? )")
 		CheckError(err)
+
 		result, err := stmt.Exec(user.Username, user.Email, user.Password, user.Birthdate)
 		CheckError(err)
 
@@ -64,7 +99,7 @@ func (storage *UserStorage) Save(data interface{}) error {
 func (storage *UserStorage) Update(condition map[string]string, data interface{}) error {
 
 	if user, ok := data.(User); ok {
-		stmt, err := storage.conn.Prepare("UPDATE users SET  username = ? email = ? password = ?  birthdate, ? WHERE ? ")
+		stmt, err := storage.conn.Prepare("UPDATE users SET  username = ? , email = ? , password = ? ,  birthdate = ? WHERE id =  ? ")
 		CheckError(err)
 		result, err := stmt.Exec(user.Username, user.Email, user.Password, user.Birthdate, condition["id"])
 		CheckError(err)

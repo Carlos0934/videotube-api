@@ -16,7 +16,7 @@ type Storage struct {
 }
 
 type ICRUDModel interface {
-	Find(condition map[string]string, pointer interface{}) error
+	Find(pointer interface{}) error
 	FindOne(codition map[string]string, pointer interface{}) error
 	Save(data interface{}) error
 	Update(condition map[string]string, data interface{}) error

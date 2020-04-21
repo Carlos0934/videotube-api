@@ -1,6 +1,8 @@
 package main
 
-import "github.com/carlos0934/videotube/controllers"
+import (
+	"github.com/carlos0934/videotube/controllers"
+)
 
 func main() {
 	app := controllers.NewAppServer()
