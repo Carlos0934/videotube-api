@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -16,16 +17,15 @@ type User struct {
 }
 
 type UserStorage struct {
-	conn *sql.DB
+	Storage
 }
 
-func NewUserStorage() *UserStorage {
-	conn, err := sql.Open("mysql", "root@/videotube")
-
-	CheckError(err)
+func NewUserStorage(conn *sql.DB) *UserStorage {
 
 	return &UserStorage{
-		conn: conn,
+		Storage: Storage{
+			conn: conn,
+		},
 	}
 
 }
@@ -91,6 +91,8 @@ func (storage *UserStorage) Save(data interface{}) error {
 		_, err = result.LastInsertId()
 		CheckError(err)
 
+		return err
+		fmt.Println("dsadsa")
 	}
 	return nil
 
