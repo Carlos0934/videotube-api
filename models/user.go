@@ -3,7 +3,7 @@ package models
 import "database/sql"
 
 type User struct {
-	ID        string
+	BaseModel
 	Username  string
 	Email     string
 	Password  string
@@ -19,10 +19,10 @@ func (storage *UserStorage) GetConnection(conn *sql.DB) {
 }
 
 func (storage *UserStorage) Find(condition map[string]string, pointer interface{}) error {
-	stmt, err := storage.conn.Prepare("SELECT * FROM USERS WHERE username = ? AND password = ?")
+	stmt, err := storage.conn.Prepare("SELECT * FROM USERS WHERE ")
 	CheckError(err)
 
-	rows, err := stmt.Query(condition["username"], condition["password"])
+	rows, err := stmt.Query()
 	CheckError(err)
 	users := make([]*User, 0)
 	for rows.Next() {
@@ -36,10 +36,28 @@ func (storage *UserStorage) Find(condition map[string]string, pointer interface{
 }
 
 func (storage *UserStorage) FindOne(condition map[string]string, pointer interface{}) error {
+	stmt, err := storage.conn.Prepare("SELECT * FROM USERS WHERE username = ? AND password = ?")
 
+	rows, err := stmt.Query(condition["username"], condition["password"])
+	CheckError(err)
+	var user *User
+	rows.Scan(user.ID, user.Username, user.Email, user.Password, user.Birthdate)
+	pointer = user
+	return nil
 }
 
 func (storage *UserStorage) Save(data interface{}) error {
+	if user, ok := data.(User); ok {
+		stmt, err := storage.conn.Prepare("INSERT INTO USERS (username, email, password, birthdate) VALUES (? ,? , ? , ? )")
+		CheckError(err)
+		result, err := stmt.Exec(user.Username, user.Email, user.Password, user.Birthdate)
+		CheckError(err)
+
+		_, err = result.LastInsertId()
+		CheckError(err)
+
+	}
+	return nil
 
 }
 

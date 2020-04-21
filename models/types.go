@@ -1,9 +1,18 @@
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type IStorage interface {
 	GetConnection(*sql.DB)
+}
+type BaseModel struct {
+	ID int
+}
+
+type Storage struct {
+	conn *sql.DB
 }
 
 type ICRUDModel interface {
