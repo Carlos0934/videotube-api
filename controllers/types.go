@@ -29,8 +29,24 @@ type AppServer struct {
 	server  *http.ServeMux
 }
 
+func NewAppServer() *AppServer {
+	return &AppServer{
+		server:  http.NewServeMux(),
+		Routers: make([]IRouter, 0),
+	}
+}
+
+func (app *AppServer) AddRouter(router ...IRouter) {
+	app.Routers = append(app.Routers, router...)
+}
+
 func (app AppServer) SetRoutes() {
 	for _, router := range app.Routers {
 		router.SetupRouter(app.server)
 	}
+}
+
+func (app AppServer) StartServer(address string) {
+
+	http.ListenAndServe(address, app.server)
 }
