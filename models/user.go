@@ -17,6 +17,7 @@ type User struct {
 
 type UserStorage struct {
 	Storage
+	hasher Hasher
 }
 
 func NewUserStorage(conn *sql.DB) *UserStorage {
@@ -25,6 +26,7 @@ func NewUserStorage(conn *sql.DB) *UserStorage {
 		Storage: Storage{
 			conn: conn,
 		},
+		hasher: Hasher{},
 	}
 
 }
@@ -84,7 +86,7 @@ func (storage *UserStorage) Save(data interface{}) error {
 
 		stmt, err := storage.conn.Prepare("INSERT INTO users (username, email, password, birthdate) VALUES (? ,? , ? , ? )")
 		CheckError(err)
-
+		user.Password = storage.hasher.Hash(user.Password)
 		result, err := stmt.Exec(user.Username, user.Email, user.Password, user.Birthdate)
 		CheckError(err)
 
