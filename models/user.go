@@ -81,6 +81,7 @@ func (storage *UserStorage) FindOne(condition map[string]string, pointer interfa
 
 func (storage *UserStorage) Save(data interface{}) error {
 	if user, ok := data.(*User); ok {
+
 		stmt, err := storage.conn.Prepare("INSERT INTO users (username, email, password, birthdate) VALUES (? ,? , ? , ? )")
 		CheckError(err)
 
