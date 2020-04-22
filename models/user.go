@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -92,7 +91,7 @@ func (storage *UserStorage) Save(data interface{}) error {
 		CheckError(err)
 
 		return err
-		fmt.Println("dsadsa")
+
 	}
 	return nil
 

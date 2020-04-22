@@ -1,8 +1,14 @@
 package models
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"errors"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"time"
 )
 
 type Video struct {
@@ -16,8 +22,15 @@ type Video struct {
 	CreatedAt string
 }
 
+const (
+	ContentCover int = 0
+	ContentVideo int = 1
+)
+
 type VideoStorage struct {
 	Storage
+	CoverDir string
+	VideoDir string
 }
 
 func NewVideoStorage(conn *sql.DB) *VideoStorage {
@@ -26,6 +39,9 @@ func NewVideoStorage(conn *sql.DB) *VideoStorage {
 		Storage: Storage{
 			conn: conn,
 		},
+
+		CoverDir: "./data/covers/",
+		VideoDir: "./data/videos/",
 	}
 }
 
@@ -115,6 +131,45 @@ func (storage *VideoStorage) Save(data interface{}) error {
 	}
 	return nil
 
+}
+func (storage *VideoStorage) getPath(filename string, context int) (string, error) {
+	path := ""
+	if context == 0 {
+		path = storage.CoverDir + filename
+	} else if context == 1 {
+		path = storage.VideoDir + filename
+	} else {
+
+		return "", errors.New("Invalid context")
+	}
+
+	return path, nil
+}
+func (storage *VideoStorage) SerializeContent(content []byte, filename string, context int) string {
+
+	hash := sha256.Sum256([]byte(string(content) + filename + time.Now().String()))
+
+	newFilename := base64.URLEncoding.EncodeToString(hash[:]) + filepath.Ext(filename)
+
+	path, err := storage.getPath(newFilename, context)
+	CheckError(err)
+
+	file, err := os.Create(path)
+	CheckError(err)
+	_, err = file.Write(content)
+	CheckError(err)
+	err = file.Close()
+	CheckError(err)
+	return newFilename
+}
+
+func (storage *VideoStorage) DeserializeContent(filename string, context int) []byte {
+	path, err := storage.getPath(filename, context)
+	CheckError(err)
+
+	file, err := ioutil.ReadFile(path)
+	CheckError(err)
+	return file
 }
 
 func (storage *VideoStorage) Update(condition map[string]string, data interface{}) error {
