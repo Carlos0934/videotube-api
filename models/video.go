@@ -188,7 +188,27 @@ func (storage *VideoStorage) Update(condition map[string]string, data interface{
 	return nil
 }
 
+func (storage *VideoStorage) deleteContent(id string) {
+	stmt, err := storage.conn.Prepare("SELECT url, cover FROM videos WHERE id = ? LIMIT 1")
+	CheckError(err)
+	row, err := stmt.Query(id)
+	var (
+		cover string
+		video string
+	)
+	for row.Next() {
+
+		err := row.Scan(&video, &cover)
+		CheckError(err)
+	}
+
+	err = os.Remove(cover)
+	CheckError(err)
+	err = os.Remove(video)
+	CheckError(err)
+}
 func (storage *VideoStorage) Delete(condition map[string]string) bool {
+	storage.deleteContent(condition["id"])
 	stmt, err := storage.conn.Prepare("DELETE FROM videos WHERE id = ?")
 	CheckError(err)
 	result, err := stmt.Exec(condition["id"])
