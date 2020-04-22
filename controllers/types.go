@@ -6,37 +6,36 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Router struct {
-	mux    *mux.Router
-	config string
+type Controller struct {
+	mux *mux.Router
 }
 
-type RouterAPI interface {
-	IRouter
+type ControllerAPI interface {
+	IController
 	Get(w http.ResponseWriter, r *http.Request)
 	GetAll(w http.ResponseWriter, r *http.Request)
 	Post(w http.ResponseWriter, r *http.Request)
 	Put(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 }
-type IRouter interface {
+type IController interface {
 	SetupRouter(server *http.ServeMux)
 }
 
 type AppServer struct {
 	Config  string
-	Routers []IRouter
+	Routers []IController
 	server  *http.ServeMux
 }
 
 func NewAppServer() *AppServer {
 	return &AppServer{
 		server:  http.NewServeMux(),
-		Routers: make([]IRouter, 0),
+		Routers: make([]IController, 0),
 	}
 }
 
-func (app *AppServer) AddRouter(router ...IRouter) {
+func (app *AppServer) AddRouter(router ...IController) {
 	app.Routers = append(app.Routers, router...)
 }
 

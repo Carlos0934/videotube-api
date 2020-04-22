@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 )
 
 type IStorage interface {
@@ -13,6 +15,21 @@ type BaseModel struct {
 
 type Storage struct {
 	conn *sql.DB
+}
+
+func (storage *Storage) ParseQuery(query string, condition map[string]string) (string, []string) {
+	parseQuery := query + " WHERE"
+	params := make([]string, 0)
+
+	for key, value := range condition {
+		parseQuery += fmt.Sprintf(" %v = ? AND ", key)
+		params = append(params, value)
+	}
+	index := strings.LastIndex(parseQuery, "AND")
+
+	parseQuery = parseQuery[:index]
+
+	return parseQuery, params
 }
 
 type ICRUDModel interface {
