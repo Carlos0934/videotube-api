@@ -79,6 +79,7 @@ func (controller *ControllerAPI) getUriPath() string {
 	return fmt.Sprintf("/{%v}", controller.uri)
 }
 func (internal *ControllerAPI) SetupRouterAPI(server *mux.Router, controller IControllerAPI) {
+	server.Use(JSONMiddleware)
 	route := server.PathPrefix(internal.url).Subrouter()
 	route.HandleFunc("", controller.GetAll).Methods("GET")
 	route.HandleFunc("", controller.Post).Methods("POST")

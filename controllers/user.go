@@ -22,6 +22,7 @@ func NewUserController(storage *models.UserStorage) *UserController {
 	}
 }
 func (controller *UserController) SetupRouter(server *mux.Router) {
+
 	controller.SetupRouterAPI(server, controller)
 }
 func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
