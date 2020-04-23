@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -50,6 +51,22 @@ func (app *AppServer) StartServer(address string) {
 type ControllerAPI struct {
 	uri string
 	url string
+}
+
+type Message struct {
+	Content string `json:"message"`
+	IsError bool   `json:"error"`
+}
+
+func NewResponseMessage(content string, err bool) []byte {
+	message := &Message{
+		Content: content,
+		IsError: err,
+	}
+
+	data, _ := json.Marshal(message)
+
+	return data
 }
 
 func NewControllerAPI(url, uri string) *ControllerAPI {

@@ -60,7 +60,6 @@ func (controller *UserController) GetAll(w http.ResponseWriter, r *http.Request)
 	w.Write(data)
 }
 
-// Write a message
 func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 
@@ -73,16 +72,11 @@ func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	data, err := json.Marshal(&user)
-	if err != nil {
-		fmt.Println(err)
-	}
 
-	w.Write(data)
+	w.Write(NewResponseMessage("New User created", false))
 
 }
 
-// Write a message
 func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	id := mux.Vars(r)[controller.uri]
@@ -98,15 +92,10 @@ func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	data, err := json.Marshal(&user)
-	if err != nil {
-		fmt.Println(err)
-	}
 
-	w.Write(data)
+	w.Write(NewResponseMessage("User updated", false))
 }
 
-// Write a message
 func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)[controller.uri]
 
@@ -115,8 +104,8 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 	result := controller.storage.Delete(filter)
 
 	if result {
-		w.Write([]byte("Deleted successfully"))
+		w.Write(NewResponseMessage("User deleted successfully", false))
 	} else {
-		w.Write([]byte("Fail try"))
+		w.Write(NewResponseMessage("Failed to  try to delete user", false))
 	}
 }
