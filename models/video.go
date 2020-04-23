@@ -13,13 +13,13 @@ import (
 
 type Video struct {
 	BaseModel
-	Title     string
-	UserID    int
-	Cover     string
-	URL       string
-	Likes     uint
-	Dislikes  uint
-	CreatedAt string
+	Title     string `json:"title"`
+	UserID    int    `json:"user_id"`
+	Cover     string `json:"cover"`
+	URL       string `json:"url"`
+	Likes     uint   `json:"likes"`
+	Dislikes  uint   `json:"dislikes"`
+	CreatedAt string `json:"created_at"`
 }
 
 const (

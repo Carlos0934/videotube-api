@@ -9,10 +9,10 @@ import (
 
 type User struct {
 	BaseModel
-	Username  string
-	Email     string
-	Password  string
-	Birthdate string
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	Birthdate string `json:"birthdate"`
 }
 
 type UserStorage struct {

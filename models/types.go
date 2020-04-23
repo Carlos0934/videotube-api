@@ -10,7 +10,7 @@ type IStorage interface {
 	GetConnection(*sql.DB)
 }
 type BaseModel struct {
-	ID int
+	ID int `json:"id"`
 }
 
 type Storage struct {
