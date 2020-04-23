@@ -42,8 +42,8 @@ func (app *AppServer) SetRoutes() {
 	}
 }
 
-func (app AppServer) StartServer(address string) {
-
+func (app *AppServer) StartServer(address string) {
+	app.SetRoutes()
 	http.ListenAndServe(address, app.server)
 }
 

@@ -8,19 +8,18 @@ import (
 )
 
 func main() {
-	app := BuildContainer("root@/videotube")
+	app := BuildContainer()
 
 	app.StartServer(":3000")
 }
 
-func BuildContainer(uri string) *controllers.AppServer {
+func BuildContainer() *controllers.AppServer {
 
-	conn := db.MysqlConnector(uri)
+	conn := db.MysqlConnector("root@/videotube")
 	userStorage := models.NewUserStorage(conn)
 	userController := controllers.NewUserController(userStorage)
 	app := controllers.NewAppServer()
 	app.AddRouter(userController)
-	app.SetRoutes()
 
 	return app
 }
