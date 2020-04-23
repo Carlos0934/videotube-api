@@ -10,23 +10,24 @@ import (
 )
 
 type UserController struct {
-	Controller
+	*ControllerAPI
 	storage *models.UserStorage
 }
 
 func NewUserController(storage *models.UserStorage) *UserController {
 
 	return &UserController{
-		storage: storage,
+		storage:       storage,
+		ControllerAPI: NewControllerAPI("/users", "user"),
 	}
 }
-
-func (*UserController) SetupRouter(server *mux.Router) {
-
+func (controller *UserController) SetupRouter(server *mux.Router) {
+	controller.SetupRouterAPI(server, controller)
 }
 func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 
-	id := mux.Vars(r)["user"]
+	id := mux.Vars(r)[controller.uri]
+
 	filter := map[string]interface{}{"id": id}
 	user := models.User{}
 	err := controller.storage.FindOne(filter, &user)
@@ -38,12 +39,14 @@ func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	w.Write(data)
 
 }
 
 func (controller *UserController) GetAll(w http.ResponseWriter, r *http.Request) {
 
+	w.Write([]byte("Holaaaa"))
 }
 
 func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {

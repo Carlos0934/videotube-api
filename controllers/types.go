@@ -1,16 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-type Controller struct {
-	mux *mux.Router
-}
-
-type ControllerAPI interface {
+type IControllerAPI interface {
 	IController
 	Get(w http.ResponseWriter, r *http.Request)
 	GetAll(w http.ResponseWriter, r *http.Request)
@@ -39,7 +36,7 @@ func (app *AppServer) AddRouter(router ...IController) {
 	app.Routers = append(app.Routers, router...)
 }
 
-func (app AppServer) SetRoutes() {
+func (app *AppServer) SetRoutes() {
 	for _, router := range app.Routers {
 		router.SetupRouter(app.server)
 	}
@@ -48,4 +45,30 @@ func (app AppServer) SetRoutes() {
 func (app AppServer) StartServer(address string) {
 
 	http.ListenAndServe(address, app.server)
+}
+
+type ControllerAPI struct {
+	uri string
+	url string
+}
+
+func NewControllerAPI(url, uri string) *ControllerAPI {
+	return &ControllerAPI{
+		url: url,
+		uri: uri,
+	}
+}
+func (controller *ControllerAPI) getUriPath() string {
+	return fmt.Sprintf("/{%v}", controller.uri)
+}
+func (internal *ControllerAPI) SetupRouterAPI(server *mux.Router, controller IControllerAPI) {
+	route := server.PathPrefix(internal.url).Subrouter()
+	route.HandleFunc("", controller.GetAll).Methods("GET")
+	route.HandleFunc("", controller.Post).Methods("POST")
+
+	uri := internal.getUriPath()
+	route.HandleFunc(uri, controller.Get).Methods("GET")
+	route.HandleFunc(uri, controller.Put).Methods("PUT")
+	route.HandleFunc(uri, controller.Delete).Methods("DELETE")
+
 }
