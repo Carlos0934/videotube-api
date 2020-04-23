@@ -19,18 +19,18 @@ type ControllerAPI interface {
 	Delete(w http.ResponseWriter, r *http.Request)
 }
 type IController interface {
-	SetupRouter(server *http.ServeMux)
+	SetupRouter(server *mux.Router)
 }
 
 type AppServer struct {
 	Config  string
 	Routers []IController
-	server  *http.ServeMux
+	server  *mux.Router
 }
 
 func NewAppServer() *AppServer {
 	return &AppServer{
-		server:  http.NewServeMux(),
+		server:  mux.NewRouter(),
 		Routers: make([]IController, 0),
 	}
 }

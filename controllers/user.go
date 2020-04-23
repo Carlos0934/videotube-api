@@ -11,14 +11,19 @@ import (
 
 type UserController struct {
 	Controller
-	storage models.UserStorage
+	storage *models.UserStorage
 }
 
-func NewUserController() *UserController {
+func NewUserController(storage *models.UserStorage) *UserController {
 
-	return &UserController{}
+	return &UserController{
+		storage: storage,
+	}
 }
 
+func (*UserController) SetupRouter(server *mux.Router) {
+
+}
 func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 
 	id := mux.Vars(r)["user"]
@@ -42,6 +47,21 @@ func (controller *UserController) GetAll(w http.ResponseWriter, r *http.Request)
 }
 
 func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
+	user := models.User{}
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = controller.storage.Save(&user)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	data, err := json.Marshal(&user)
+	if err != nil {
+		fmt.Println(err)
+	}
+	w.Write(data)
 
 }
 
