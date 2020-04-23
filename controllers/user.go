@@ -46,11 +46,24 @@ func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 
 func (controller *UserController) GetAll(w http.ResponseWriter, r *http.Request) {
 
-	w.Write([]byte("Holaaaa"))
+	user := []models.User{}
+	err := controller.storage.Find(&user)
+	if err != nil {
+		fmt.Println(err)
+	}
+	data, err := json.Marshal(&user)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Write(data)
 }
 
+// Write a message
 func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
+
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		fmt.Println(err)
@@ -64,14 +77,46 @@ func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	w.Write(data)
 
 }
 
+// Write a message
 func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
+	user := models.User{}
+	id := mux.Vars(r)[controller.uri]
 
+	filter := map[string]interface{}{"id": id}
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = controller.storage.Update(filter, user)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	data, err := json.Marshal(&user)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Write(data)
 }
 
+// Write a message
 func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)[controller.uri]
 
+	filter := map[string]interface{}{"id": id}
+
+	result := controller.storage.Delete(filter)
+
+	if result {
+		w.Write([]byte("Deleted successfully"))
+	} else {
+		w.Write([]byte("Fail try"))
+	}
 }
