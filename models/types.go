@@ -17,9 +17,9 @@ type Storage struct {
 	conn *sql.DB
 }
 
-func (storage *Storage) ParseQuery(query string, condition map[string]string) (string, []string) {
+func (storage *Storage) ParseQuery(query string, condition map[string]interface{}) (string, []interface{}) {
 	parseQuery := query + " WHERE"
-	params := make([]string, 0)
+	params := make([]interface{}, 0)
 
 	for key, value := range condition {
 		parseQuery += fmt.Sprintf(" %v = ? AND ", key)
@@ -34,8 +34,8 @@ func (storage *Storage) ParseQuery(query string, condition map[string]string) (s
 
 type ICRUDModel interface {
 	Find(pointer interface{}) error
-	FindOne(codition map[string]string, pointer interface{}) error
+	FindOne(codition map[string]interface{}, pointer interface{}) error
 	Save(data interface{}) error
-	Update(condition map[string]string, data interface{}) error
-	Delete(condition map[string]string) bool
+	Update(condition map[string]interface{}, data interface{}) error
+	Delete(condition map[string]interface{}) bool
 }

@@ -74,7 +74,7 @@ func (storage *VideoStorage) Find(pointer interface{}) error {
 
 }
 
-func (storage *VideoStorage) FindOne(condition map[string]string, pointer interface{}) error {
+func (storage *VideoStorage) FindOne(condition map[string]interface{}, pointer interface{}) error {
 
 	stmt, err := storage.conn.Prepare("SELECT * FROM videos WHERE id = ")
 	CheckError(err)
@@ -172,7 +172,7 @@ func (storage *VideoStorage) DeserializeContent(filename string, context int) []
 	return file
 }
 
-func (storage *VideoStorage) Update(condition map[string]string, data interface{}) error {
+func (storage *VideoStorage) Update(condition map[string]interface{}, data interface{}) error {
 
 	if video, ok := data.(Video); ok {
 		stmt, err := storage.conn.Prepare("UPDATE videos SET url = ?, likes = ?, dislikes = ?, user_id = ?,  title = ?, cover = ?   WHERE id =  ? ")
@@ -188,10 +188,10 @@ func (storage *VideoStorage) Update(condition map[string]string, data interface{
 	return nil
 }
 
-func (storage *VideoStorage) deleteContent(id string) {
+func (storage *VideoStorage) deleteContent(condition map[string]interface{}) {
 	stmt, err := storage.conn.Prepare("SELECT url, cover FROM videos WHERE id = ? LIMIT 1")
 	CheckError(err)
-	row, err := stmt.Query(id)
+	row, err := stmt.Query(condition["id"])
 	var (
 		cover string
 		video string
@@ -207,8 +207,8 @@ func (storage *VideoStorage) deleteContent(id string) {
 	err = os.Remove(video)
 	CheckError(err)
 }
-func (storage *VideoStorage) Delete(condition map[string]string) bool {
-	storage.deleteContent(condition["id"])
+func (storage *VideoStorage) Delete(condition map[string]interface{}) bool {
+	storage.deleteContent(condition)
 	stmt, err := storage.conn.Prepare("DELETE FROM videos WHERE id = ?")
 	CheckError(err)
 	result, err := stmt.Exec(condition["id"])

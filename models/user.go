@@ -36,6 +36,7 @@ func (storage *UserStorage) GetConnection(conn *sql.DB) {
 }
 
 func (storage *UserStorage) Find(pointer interface{}) error {
+
 	stmt, err := storage.conn.Prepare("SELECT * FROM users  ")
 	CheckError(err)
 
@@ -60,11 +61,11 @@ func (storage *UserStorage) Find(pointer interface{}) error {
 
 }
 
-func (storage *UserStorage) FindOne(condition map[string]string, pointer interface{}) error {
-
-	stmt, err := storage.conn.Prepare("SELECT * FROM users WHERE username = ? AND password = ?")
+func (storage *UserStorage) FindOne(condition map[string]interface{}, pointer interface{}) error {
+	query, params := storage.ParseQuery("SELECT * FROM users ", condition)
+	stmt, err := storage.conn.Prepare(query)
 	CheckError(err)
-	rows, err := stmt.Query(condition["username"], condition["password"])
+	rows, err := stmt.Query(params...)
 	CheckError(err)
 
 	if user, ok := pointer.(*User); ok {
@@ -100,7 +101,7 @@ func (storage *UserStorage) Save(data interface{}) error {
 
 }
 
-func (storage *UserStorage) Update(condition map[string]string, data interface{}) error {
+func (storage *UserStorage) Update(condition map[string]interface{}, data interface{}) error {
 
 	if user, ok := data.(User); ok {
 		stmt, err := storage.conn.Prepare("UPDATE users SET  username = ? , email = ? , password = ? ,  birthdate = ? WHERE id =  ? ")
@@ -116,7 +117,7 @@ func (storage *UserStorage) Update(condition map[string]string, data interface{}
 	return nil
 }
 
-func (storage *UserStorage) Delete(condition map[string]string) bool {
+func (storage *UserStorage) Delete(condition map[string]interface{}) bool {
 	stmt, err := storage.conn.Prepare("DELETE FROM users WHERE id = ?")
 	CheckError(err)
 	result, err := stmt.Exec(condition["id"])
