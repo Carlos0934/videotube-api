@@ -1,6 +1,8 @@
 package models
 
-import "log"
+import (
+	"log"
+)
 
 func CheckError(err error) {
 	if err != nil {

@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"fmt"
 
 	"github.com/carlos0934/videotube/models"
@@ -13,36 +16,38 @@ type UserClaims struct {
 }
 
 type UserAuth struct {
-	key    string
-	method jwt.SigningMethod
+	key    *ecdsa.PrivateKey
+	method *jwt.SigningMethodECDSA
 }
 
-func (auth UserAuth) GenerateToken(claim interface{}) string {
-	token, err := auth.method.Sign(auth.key, claim)
+func NewUserAuth() *UserAuth {
+	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
-	if err != nil {
-		fmt.Println(err)
+	return &UserAuth{
+		key:    key,
+		method: jwt.SigningMethodES256,
 	}
-
-	return token
 }
 
-func (auth UserAuth) VerifyToken(payload string) bool {
-	token, err := jwt.Parse(payload, auth.ParseToken)
+func (auth *UserAuth) GenerateToken(claims *UserClaims) string {
+
+	token := jwt.NewWithClaims(auth.method, claims)
+	stringToken, err := token.SignedString(auth.key)
+
 	if err != nil {
+
 		fmt.Println(err)
 	}
+	return stringToken
+}
 
-	err = token.Method.Verify(payload, token.Signature, auth.key)
+func (auth UserAuth) VerifyToken(payload string, claims *UserClaims) bool {
+	_, err := jwt.ParseWithClaims(payload, claims, auth.ParseToken)
 
 	return err == nil
 }
 
-func (auth UserAuth) ParseToken(token *jwt.Token) (interface{}, error) {
+func (auth *UserAuth) ParseToken(token *jwt.Token) (interface{}, error) {
 
-	if _, ok := token.Method.(*jwt.SigningMethodECDSA); !ok {
-		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-	}
-
-	return []byte(auth.key), nil
+	return &auth.key.PublicKey, nil
 }

@@ -110,3 +110,7 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 		w.Write(NewResponseMessage("Failed to  try to delete user", false))
 	}
 }
+
+func (controller *UserController) ValideUser(w http.ResponseWriter, r *http.Request) {
+
+}
