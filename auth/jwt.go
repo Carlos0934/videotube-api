@@ -16,8 +16,9 @@ type UserClaims struct {
 }
 
 type UserAuth struct {
-	key    *ecdsa.PrivateKey
-	method *jwt.SigningMethodECDSA
+	key     *ecdsa.PrivateKey
+	method  *jwt.SigningMethodECDSA
+	Storage *models.UserStorage
 }
 
 func NewUserAuth() *UserAuth {
@@ -29,8 +30,10 @@ func NewUserAuth() *UserAuth {
 	}
 }
 
-func (auth *UserAuth) GenerateToken(claims *UserClaims) string {
-
+func (auth *UserAuth) GenerateToken(user models.User) string {
+	claims := &UserClaims{
+		User: user,
+	}
 	token := jwt.NewWithClaims(auth.method, claims)
 	stringToken, err := token.SignedString(auth.key)
 
@@ -50,4 +53,22 @@ func (auth UserAuth) VerifyToken(payload string, claims *UserClaims) bool {
 func (auth *UserAuth) ParseToken(token *jwt.Token) (interface{}, error) {
 
 	return &auth.key.PublicKey, nil
+}
+
+func (auth *UserAuth) VefifyUser(payload string, claims *UserClaims) bool {
+	if auth.VerifyToken(payload, claims) {
+		query := map[string]interface{}{"id": claims.ID, "password": claims.Password, "username": claims.Username}
+		user := &models.User{}
+		err := auth.Storage.FindOne(query, user)
+
+		if err != nil {
+			return false
+		}
+
+		if user.Username != "" {
+			return true
+		}
+	}
+
+	return false
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/carlos0934/videotube/auth"
 	"github.com/carlos0934/videotube/models"
 	"github.com/gorilla/mux"
 )
@@ -12,6 +13,7 @@ import (
 type UserController struct {
 	*ControllerAPI
 	storage *models.UserStorage
+	auth    *auth.UserAuth
 }
 
 func NewUserController(storage *models.UserStorage) *UserController {
@@ -19,6 +21,7 @@ func NewUserController(storage *models.UserStorage) *UserController {
 	return &UserController{
 		storage:       storage,
 		ControllerAPI: NewControllerAPI("/users", "user"),
+		auth:          auth.NewUserAuth(),
 	}
 }
 func (controller *UserController) SetupRouter(server *mux.Router) {
@@ -73,7 +76,8 @@ func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
+	token := controller.auth.GenerateToken(user)
+	w.Header().Add("Authorization", token)
 	w.Write(NewResponseMessage("New User created", false))
 
 }
@@ -93,7 +97,8 @@ func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
+	token := controller.auth.GenerateToken(user)
+	w.Header().Add("Authorization", token)
 	w.Write(NewResponseMessage("User updated", false))
 }
 
@@ -109,8 +114,4 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 	} else {
 		w.Write(NewResponseMessage("Failed to  try to delete user", false))
 	}
-}
-
-func (controller *UserController) ValideUser(w http.ResponseWriter, r *http.Request) {
-
 }
