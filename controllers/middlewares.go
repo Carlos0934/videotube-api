@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/carlos0934/videotube/auth"
@@ -21,7 +20,7 @@ func (middleware *UserMiddleware) AuthMiddleware(next http.Handler) http.Handler
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-		fmt.Println("dsadsa")
+
 		if middleware.userAuth.VefifyUser(token, &auth.UserClaims{}) {
 
 			next.ServeHTTP(w, r)

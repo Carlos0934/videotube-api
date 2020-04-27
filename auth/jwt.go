@@ -62,7 +62,7 @@ func (auth *UserAuth) VefifyUser(payload string, claims *UserClaims) bool {
 		query := map[string]interface{}{"id": claims.ID, "password": claims.Password, "username": claims.Username}
 		user := &models.User{}
 		err := auth.Storage.FindOne(query, user)
-		fmt.Println("dsadsa")
+
 		if err != nil {
 			return false
 		}
