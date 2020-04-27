@@ -13,23 +13,24 @@ import (
 
 type UserController struct {
 	*ControllerAPI
-	storage *models.UserStorage
-	auth    *auth.UserAuth
+	storage   *models.UserStorage
+	auth      *auth.UserAuth
+	middlware *UserMiddleware
 }
 
 func NewUserController(conn *sql.DB) *UserController {
-	userAuth := auth.NewUserAuth()
-	userAuth.Storage.GetConnection()
-
+	userAuth := auth.NewUserAuth(conn)
 	return &UserController{
 		storage:       models.NewUserStorage(conn),
 		ControllerAPI: NewControllerAPI("/users", "user"),
 		auth:          userAuth,
+		middlware:     NewUserMiddleware(userAuth),
 	}
 }
 func (controller *UserController) SetupRouter(server *mux.Router) {
 
 	controller.SetupRouterAPI(server, controller)
+
 }
 func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 
@@ -79,8 +80,7 @@ func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	token := controller.auth.GenerateToken(user)
-	w.Header().Add("Authorization", token)
+	controller.getToken(w, user)
 	w.Write(NewResponseMessage("New User created", false))
 
 }
@@ -100,8 +100,8 @@ func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	token := controller.auth.GenerateToken(user)
-	w.Header().Add("Authorization", token)
+
+	controller.getToken(w, user)
 	w.Write(NewResponseMessage("User updated", false))
 }
 
@@ -119,6 +119,8 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (controller *UserController) GetToken(w http.ResponseWriter, r *http.Request) {
+func (controller *UserController) getToken(w http.ResponseWriter, user models.User) {
 
+	token := controller.auth.GenerateToken(user)
+	w.Header().Add("Authorization", token)
 }
