@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/carlos0934/videotube/auth"
+	"github.com/gorilla/mux"
 )
 
 type UserMiddleware struct {
@@ -19,6 +20,11 @@ func NewUserMiddleware(userAuth *auth.UserAuth) *UserMiddleware {
 func (middleware *UserMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if mux.Vars(r)["user"] == "" {
+
+			next.ServeHTTP(w, r)
+			return
+		}
 		token := r.Header.Get("Authorization")
 
 		if middleware.userAuth.VefifyUser(token, &auth.UserClaims{}) {

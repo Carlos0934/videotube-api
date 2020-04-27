@@ -29,6 +29,7 @@ func NewUserController(conn *sql.DB) *UserController {
 }
 func (controller *UserController) SetupRouter(server *mux.Router) {
 
+	server.Use(controller.middlware.AuthMiddleware)
 	controller.SetupRouterAPI(server, controller)
 
 }
