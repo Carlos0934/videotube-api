@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,12 +17,14 @@ type UserController struct {
 	auth    *auth.UserAuth
 }
 
-func NewUserController(storage *models.UserStorage) *UserController {
+func NewUserController(conn *sql.DB) *UserController {
+	userAuth := auth.NewUserAuth()
+	userAuth.Storage.GetConnection()
 
 	return &UserController{
-		storage:       storage,
+		storage:       models.NewUserStorage(conn),
 		ControllerAPI: NewControllerAPI("/users", "user"),
-		auth:          auth.NewUserAuth(),
+		auth:          userAuth,
 	}
 }
 func (controller *UserController) SetupRouter(server *mux.Router) {
@@ -114,4 +117,8 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 	} else {
 		w.Write(NewResponseMessage("Failed to  try to delete user", false))
 	}
+}
+
+func (controller *UserController) GetToken(w http.ResponseWriter, r *http.Request) {
+
 }

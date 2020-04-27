@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"database/sql"
 	"fmt"
 
 	"github.com/carlos0934/videotube/models"
@@ -21,12 +22,13 @@ type UserAuth struct {
 	Storage *models.UserStorage
 }
 
-func NewUserAuth() *UserAuth {
+func NewUserAuth(conn *sql.DB) *UserAuth {
 	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	return &UserAuth{
-		key:    key,
-		method: jwt.SigningMethodES256,
+		key:     key,
+		method:  jwt.SigningMethodES256,
+		Storage: models.NewUserStorage(conn),
 	}
 }
 

@@ -1,23 +1,26 @@
 package controllers
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/carlos0934/videotube/auth"
 )
 
-type Middleware struct {
-	conn *sql.DB
+type UserMiddleware struct {
+	userAuth auth.UserAuth
 }
 
-func (middleware *Middleware) AuthMiddleware(next http.Handler) http.Handler {
-	authUser := auth.NewUserAuth()
-	authUser.Storage.GetConnection(middleware.conn)
+func NewUserMiddleware(userAuth *auth.UserAuth) *UserMiddleware {
+
+	return &UserMiddleware{
+		userAuth: *userAuth,
+	}
+}
+func (middleware *UserMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-		if authUser.VefifyUser(token, &auth.UserClaims{}) {
+		if middleware.userAuth.VefifyUser(token, &auth.UserClaims{}) {
 
 			next.ServeHTTP(w, r)
 
