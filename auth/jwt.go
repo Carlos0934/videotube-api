@@ -9,6 +9,7 @@ import (
 
 	"github.com/carlos0934/videotube/models"
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserClaims struct {
@@ -32,6 +33,16 @@ func NewUserAuth(conn *sql.DB) *UserAuth {
 	}
 }
 
+func (auth *UserAuth) VerifyPassword(user models.User) bool {
+	filter := map[string]interface{}{"id": user.ID, "username": user.Username, "email": user.Email}
+	dbUser := models.User{}
+	err := auth.Storage.FindOne(filter, dbUser)
+	if err != nil {
+		return false
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
+	return err == nil
+}
 func (auth *UserAuth) GenerateToken(user models.User) string {
 	claims := &UserClaims{
 		User: user,

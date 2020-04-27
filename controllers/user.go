@@ -30,9 +30,24 @@ func NewUserController(conn *sql.DB) *UserController {
 func (controller *UserController) SetupRouter(server *mux.Router) {
 
 	server.Use(controller.middlware.AuthMiddleware)
+	server.HandleFunc("/auth", controller.ValidateUser)
+
 	controller.SetupRouterAPI(server, controller)
 
 }
+
+func (controller *UserController) addToken(w http.ResponseWriter, user models.User) {
+
+	token := controller.auth.GenerateToken(user)
+	w.Header().Add("Authorization", token)
+}
+func (controller *UserController) getUser(w http.ResponseWriter, r *http.Request) models.User {
+	user := models.User{}
+	json.NewDecoder(r.Body).Decode(&user)
+
+	return user
+}
+
 func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 
 	id := mux.Vars(r)[controller.uri]
@@ -70,39 +85,32 @@ func (controller *UserController) GetAll(w http.ResponseWriter, r *http.Request)
 }
 
 func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
-	user := models.User{}
 
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		fmt.Println(err)
-	}
-	err = controller.storage.Save(&user)
+	user := controller.getUser(w, r)
+	err := controller.storage.Save(&user)
 
 	if err != nil {
 		fmt.Println(err)
 	}
-	controller.getToken(w, user)
+	controller.addToken(w, user)
 	w.Write(NewResponseMessage("New User created", false))
 
 }
 
 func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
-	user := models.User{}
+
 	id := mux.Vars(r)[controller.uri]
 
 	filter := map[string]interface{}{"id": id}
 
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		fmt.Println(err)
-	}
-	err = controller.storage.Update(filter, user)
+	user := controller.getUser(w, r)
+	err := controller.storage.Update(filter, user)
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	controller.getToken(w, user)
+	controller.addToken(w, user)
 	w.Write(NewResponseMessage("User updated", false))
 }
 
@@ -120,8 +128,18 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (controller *UserController) getToken(w http.ResponseWriter, user models.User) {
+func (controller *UserController) ValidateUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-type", "application/json")
+	user := controller.getUser(w, r)
+	if user.Password == "" {
+		w.Write(NewResponseMessage("Password not provided", false))
+		return
+	}
+	if controller.auth.VerifyPassword(user) {
+		controller.addToken(w, user)
+		w.Write(NewResponseMessage("Token successfully created ", false))
+		return
+	}
 
-	token := controller.auth.GenerateToken(user)
-	w.Header().Add("Authorization", token)
+	w.Write(NewResponseMessage("Invalid user", false))
 }
