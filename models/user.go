@@ -118,9 +118,12 @@ func (storage *UserStorage) Update(condition map[string]interface{}, data interf
 }
 
 func (storage *UserStorage) Delete(condition map[string]interface{}) bool {
-	stmt, err := storage.conn.Prepare("DELETE FROM users WHERE id = ?")
+	query, data := storage.ParseQuery("DELETE FROM users ", condition)
+
+	stmt, err := storage.conn.Prepare(query)
+
 	CheckError(err)
-	result, err := stmt.Exec(condition["id"])
+	result, err := stmt.Exec(data...)
 	count, err := result.RowsAffected()
 	CheckError(err)
 

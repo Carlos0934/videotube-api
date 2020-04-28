@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"crypto/ecdsa"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -18,8 +19,8 @@ type UserController struct {
 	middlware *UserMiddleware
 }
 
-func NewUserController(conn *sql.DB) *UserController {
-	userAuth := auth.NewUserAuth(conn)
+func NewUserController(conn *sql.DB, privateKey *ecdsa.PrivateKey) *UserController {
+	userAuth := auth.NewUserAuth(conn, privateKey)
 	return &UserController{
 		storage:       models.NewUserStorage(conn),
 		ControllerAPI: NewControllerAPI("/users", "user"),

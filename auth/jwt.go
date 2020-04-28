@@ -2,8 +2,6 @@ package auth
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"database/sql"
 	"fmt"
 
@@ -23,11 +21,10 @@ type UserAuth struct {
 	Storage *models.UserStorage
 }
 
-func NewUserAuth(conn *sql.DB) *UserAuth {
-	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+func NewUserAuth(conn *sql.DB, PrivateKey *ecdsa.PrivateKey) *UserAuth {
 
 	return &UserAuth{
-		key:     key,
+		key:     PrivateKey,
 		method:  jwt.SigningMethodES256,
 		Storage: models.NewUserStorage(conn),
 	}
@@ -47,6 +44,7 @@ func (auth *UserAuth) GenerateToken(user models.User) string {
 	claims := &UserClaims{
 		User: user,
 	}
+
 	token := jwt.NewWithClaims(auth.method, claims)
 	stringToken, err := token.SignedString(auth.key)
 
@@ -57,7 +55,8 @@ func (auth *UserAuth) GenerateToken(user models.User) string {
 	return stringToken
 }
 
-func (auth UserAuth) VerifyToken(payload string, claims *UserClaims) bool {
+func (auth *UserAuth) VerifyToken(payload string, claims *UserClaims) bool {
+
 	_, err := jwt.ParseWithClaims(payload, claims, auth.ParseToken)
 
 	return err == nil
@@ -69,18 +68,23 @@ func (auth *UserAuth) ParseToken(token *jwt.Token) (interface{}, error) {
 }
 
 func (auth *UserAuth) VefifyUser(payload string, claims *UserClaims) bool {
+
 	if auth.VerifyToken(payload, claims) {
+
 		query := map[string]interface{}{"id": claims.ID, "password": claims.Password, "username": claims.Username}
 		user := &models.User{}
 		err := auth.Storage.FindOne(query, user)
 
 		if err != nil {
+
 			return false
 		}
-
+		fmt.Println(user)
 		if user.Username != "" {
+
 			return true
 		}
+
 	}
 
 	return false
