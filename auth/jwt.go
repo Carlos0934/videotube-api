@@ -33,7 +33,7 @@ func NewUserAuth(conn *sql.DB, PrivateKey *ecdsa.PrivateKey) *UserAuth {
 func (auth *UserAuth) VerifyPassword(user models.User) bool {
 	filter := map[string]interface{}{"id": user.ID, "username": user.Username, "email": user.Email}
 	dbUser := models.User{}
-	err := auth.Storage.FindOne(filter, dbUser)
+	err := auth.Storage.FindOne(filter, &dbUser)
 	if err != nil {
 		return false
 	}
@@ -71,7 +71,7 @@ func (auth *UserAuth) VefifyUser(payload string, claims *UserClaims) bool {
 
 	if auth.VerifyToken(payload, claims) {
 
-		query := map[string]interface{}{"id": claims.ID, "password": claims.Password, "username": claims.Username}
+		query := map[string]interface{}{"password": claims.Password, "username": claims.Username}
 		user := &models.User{}
 		err := auth.Storage.FindOne(query, user)
 
@@ -79,7 +79,7 @@ func (auth *UserAuth) VefifyUser(payload string, claims *UserClaims) bool {
 
 			return false
 		}
-		fmt.Println(user)
+
 		if user.Username != "" {
 
 			return true
