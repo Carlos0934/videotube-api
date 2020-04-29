@@ -3,6 +3,8 @@ package controllers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -39,10 +41,43 @@ func (controller *VideoController) getVideofilter(r *http.Request) map[string]in
 
 	return map[string]interface{}{"id": ids["video"], "user_id": ids["user"]}
 }
+
 func (controller *VideoController) SetupRouter(server *mux.Router) {
 	controller.SetupRouterAPI(server, controller)
 }
 
+func (controller *VideoController) getContent(content int, key string, r *http.Request) string {
+	err := r.ParseMultipartForm(30 << 20)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	file, header, err := r.FormFile(key)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	url := controller.storage.SerializeContent(data, header.Filename, content)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return url
+
+}
+
+func (controller *VideoController) getMediaContents(r *http.Request) [2]string {
+	videoURL := controller.getContent(models.ContentVideo, "video", r)
+	coverURL := controller.getContent(models.ContentCover, "cover", r)
+
+	return [2]string{videoURL, coverURL}
+}
 func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 
 	video := &models.Video{}
