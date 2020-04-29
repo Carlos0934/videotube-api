@@ -13,13 +13,13 @@ import (
 
 type Video struct {
 	BaseModel
-	Title     string `json:"title"`
-	UserID    int    `json:"user_id"`
-	Cover     string `json:"cover"`
-	URL       string `json:"url"`
-	Likes     uint   `json:"likes"`
-	Dislikes  uint   `json:"dislikes"`
-	CreatedAt string `json:"created_at"`
+	Title     string  `json:"title"`
+	UserID    int     `json:"user_id"`
+	Cover     *string `json:"cover"`
+	URL       string  `json:"url"`
+	Likes     uint    `json:"likes"`
+	Dislikes  uint    `json:"dislikes"`
+	CreatedAt string  `json:"created_at"`
 }
 
 const (
@@ -53,7 +53,7 @@ func (storage *VideoStorage) Find(pointer interface{}) error {
 
 	if videos, ok := pointer.(*[]Video); ok {
 
-		stmt, err := storage.conn.Prepare("SELECT * FROM videos WHERE   ")
+		stmt, err := storage.conn.Prepare("SELECT * FROM videos  ")
 		CheckError(err)
 
 		rows, err := stmt.Query()
@@ -125,10 +125,10 @@ func (storage *VideoStorage) FindByUser(id string, pointer interface{}) error {
 func (storage *VideoStorage) Save(data interface{}) error {
 	if video, ok := data.(*Video); ok {
 
-		stmt, err := storage.conn.Prepare("INSERT INTO videos (url, user_id,  title, cover) VALUES (? ,? , ? , ?)")
+		stmt, err := storage.conn.Prepare("INSERT INTO videos ( user_id,  title) VALUES (? ,? )")
 		CheckError(err)
 
-		result, err := stmt.Exec(video.URL, &video.UserID, &video.Title, &video.Cover)
+		result, err := stmt.Exec(&video.UserID, &video.Title)
 		CheckError(err)
 
 		_, err = result.LastInsertId()
@@ -153,11 +153,15 @@ func (storage *VideoStorage) getPath(filename string, context string) (string, e
 
 	return path, nil
 }
+
+func (Storage *VideoStorage) ParseFilename(filename string) string {
+	hash := sha256.Sum256([]byte(filename + time.Now().String()))
+
+	return base64.URLEncoding.EncodeToString(hash[:]) + filepath.Ext(filename)
+}
 func (storage *VideoStorage) SerializeContent(content []byte, filename string, context string) string {
 
-	hash := sha256.Sum256([]byte(string(content) + filename + time.Now().String()))
-
-	newFilename := base64.URLEncoding.EncodeToString(hash[:]) + filepath.Ext(filename)
+	newFilename := storage.ParseFilename(filename)
 
 	path, err := storage.getPath(newFilename, context)
 	CheckError(err)
@@ -196,6 +200,17 @@ func (storage *VideoStorage) Update(condition map[string]interface{}, data inter
 	return videoErr
 }
 
+func (storage *VideoStorage) AddURLS(id string, data [2]string) error {
+	stmt, err := storage.conn.Prepare("UPDATE videos SET  url = ?,  cover = ?  WHERE id =  ?  ")
+	CheckError(err)
+	result, err := stmt.Exec(&data[0], &data[1], &id)
+	CheckError(err)
+
+	_, err = result.LastInsertId()
+	CheckError(err)
+	return err
+}
+
 func (storage *VideoStorage) deleteContent(condition map[string]interface{}) {
 	stmt, err := storage.conn.Prepare("SELECT url, cover FROM videos WHERE id = ? LIMIT 1")
 	CheckError(err)
@@ -209,6 +224,8 @@ func (storage *VideoStorage) deleteContent(condition map[string]interface{}) {
 		err := row.Scan(&video, &cover)
 		CheckError(err)
 	}
+	video = storage.VideoDir + filepath.Base(video)
+	cover = storage.CoverDir + filepath.Base(cover)
 
 	err = os.Remove(cover)
 	CheckError(err)

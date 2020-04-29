@@ -43,7 +43,8 @@ func (controller *VideoController) getVideofilter(r *http.Request) map[string]in
 }
 
 func (controller *VideoController) SetupRouter(server *mux.Router) {
-	server.HandleFunc("static/{content}/{filename}", controller.GetVideo)
+	server.HandleFunc("/static/{content}/{filename}", controller.GetMediaContent).Methods("GET")
+	server.HandleFunc("/upload/{user}/{video}", controller.SaveMediaContent).Methods("POST")
 	controller.SetupRouterAPI(server, controller)
 }
 
@@ -69,16 +70,16 @@ func (controller *VideoController) getContent(content string, key string, r *htt
 		fmt.Println(err)
 	}
 
-	url := fmt.Sprintf("%v/%v/%v/%v", r.Host, "static", content, filename)
+	url := fmt.Sprintf("http://%v/%v/%v/%v", r.Host, "static", content, filename)
 	return url
 
 }
 
-func (controller *VideoController) getMediaContents(r *http.Request) map[string]string {
+func (controller *VideoController) getMediaContents(r *http.Request) [2]string {
 	videoURL := controller.getContent(models.ContentVideo, "video", r)
 	coverURL := controller.getContent(models.ContentCover, "cover", r)
 
-	return map[string]string{"video": videoURL, "cover": coverURL}
+	return [2]string{videoURL, coverURL}
 }
 func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 
@@ -104,10 +105,6 @@ func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 func (controller *VideoController) Post(w http.ResponseWriter, r *http.Request) {
 	video, err := controller.getVideo(r)
 	checkErr(err, w)
-	contents := controller.getMediaContents(r)
-
-	video.Cover = contents["cover"]
-	video.URL = contents["video"]
 
 	err = controller.storage.Save(&video)
 	checkErr(err, w)
@@ -168,7 +165,7 @@ func (controller *VideoController) Delete(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (controller *VideoController) GetVideo(w http.ResponseWriter, r *http.Request) {
+func (controller *VideoController) GetMediaContent(w http.ResponseWriter, r *http.Request) {
 	content := mux.Vars(r)["content"]
 
 	filename := mux.Vars(r)["filename"]
@@ -176,4 +173,19 @@ func (controller *VideoController) GetVideo(w http.ResponseWriter, r *http.Reque
 	data := controller.storage.DeserializeContent(filename, content)
 
 	w.Write(data)
+}
+
+func (controller *VideoController) SaveMediaContent(w http.ResponseWriter, r *http.Request) {
+
+	URLS := controller.getMediaContents(r)
+	id := mux.Vars(r)["video"]
+	err := controller.storage.AddURLS(id, URLS)
+
+	if err == nil {
+		w.WriteHeader(201)
+		w.Write(NewResponseMessage("Media content uploaded successfully", false))
+	} else {
+		w.WriteHeader(400)
+		w.Write(NewResponseMessage("Error to try upload media content", true))
+	}
 }
