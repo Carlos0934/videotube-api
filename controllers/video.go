@@ -72,11 +72,11 @@ func (controller *VideoController) getContent(content int, key string, r *http.R
 
 }
 
-func (controller *VideoController) getMediaContents(r *http.Request) [2]string {
+func (controller *VideoController) getMediaContents(r *http.Request) map[string]string {
 	videoURL := controller.getContent(models.ContentVideo, "video", r)
 	coverURL := controller.getContent(models.ContentCover, "cover", r)
 
-	return [2]string{videoURL, coverURL}
+	return map[string]string{"video": videoURL, "cover": coverURL}
 }
 func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 
@@ -102,6 +102,10 @@ func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 func (controller *VideoController) Post(w http.ResponseWriter, r *http.Request) {
 	video, err := controller.getVideo(r)
 	checkErr(err, w)
+	contents := controller.getMediaContents(r)
+
+	video.Cover = contents["cover"]
+	video.URL = contents["video"]
 
 	err = controller.storage.Save(&video)
 	checkErr(err, w)
@@ -160,4 +164,19 @@ func (controller *VideoController) Delete(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(400)
 		w.Write(NewResponseMessage("Delete video failed ", true))
 	}
+}
+
+func (controller *VideoController) GetVideo(w http.ResponseWriter, r *http.Request) {
+	content := r.URL.Query().Get("content")
+
+	filename := r.URL.Query().Get("filename")
+
+	context := 0
+
+	if content == "video" {
+		context = 1
+	}
+	data := controller.storage.DeserializeContent(filename, context)
+
+	w.Write(data)
 }
