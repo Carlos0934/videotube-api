@@ -76,6 +76,7 @@ func (storage *UserStorage) FindOne(condition map[string]interface{}, pointer in
 			break
 		}
 
+		return err
 	}
 
 	return userErr
