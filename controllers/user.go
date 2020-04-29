@@ -63,7 +63,13 @@ func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	w.Write(data)
+	if err == nil {
+		w.WriteHeader(200)
+		w.Write(data)
+	} else {
+		w.WriteHeader(500)
+		w.Write(NewResponseMessage("Error to try get user", true))
+	}
 
 }
 
@@ -80,7 +86,13 @@ func (controller *UserController) GetAll(w http.ResponseWriter, r *http.Request)
 		fmt.Println(err)
 	}
 
-	w.Write(data)
+	if err == nil {
+		w.WriteHeader(200)
+		w.Write(data)
+	} else {
+		w.WriteHeader(500)
+		w.Write(NewResponseMessage("Error to try get users", true))
+	}
 }
 
 func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +104,14 @@ func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	controller.addToken(w, user)
-	w.Write(NewResponseMessage("New User created", false))
+
+	if err == nil {
+		w.WriteHeader(200)
+		w.Write(NewResponseMessage("user created successfully", false))
+	} else {
+		w.WriteHeader(400)
+		w.Write(NewResponseMessage("Error to try create user", true))
+	}
 
 }
 
@@ -110,7 +129,13 @@ func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
 	}
 
 	controller.addToken(w, user)
-	w.Write(NewResponseMessage("User updated", false))
+	if err == nil {
+		w.WriteHeader(200)
+		w.Write(NewResponseMessage("User updated successfully", false))
+	} else {
+		w.WriteHeader(400)
+		w.Write(NewResponseMessage("Error to try update user", true))
+	}
 }
 
 func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +148,7 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 	if result {
 		w.Write(NewResponseMessage("User deleted successfully", false))
 	} else {
-		w.Write(NewResponseMessage("Failed to  try to delete user", false))
+		w.Write(NewResponseMessage("Failed to  try to delete user", true))
 	}
 }
 
