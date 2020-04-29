@@ -8,12 +8,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func checkErr(err error) {
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
 type IControllerAPI interface {
 	IController
 	Get(w http.ResponseWriter, r *http.Request)

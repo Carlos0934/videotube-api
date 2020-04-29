@@ -50,10 +50,10 @@ func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 	filter := controller.getVideofilter(r)
 
 	err := controller.storage.FindOne(filter, video)
-	checkErr(err)
+	checkErr(err, w)
 
 	data, err := json.Marshal(video)
-	checkErr(err)
+	checkErr(err, w)
 
 	if err == nil {
 		w.WriteHeader(200)
@@ -66,10 +66,10 @@ func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 
 func (controller *VideoController) Post(w http.ResponseWriter, r *http.Request) {
 	video, err := controller.getVideo(r)
-	checkErr(err)
+	checkErr(err, w)
 
 	err = controller.storage.Save(&video)
-	checkErr(err)
+	checkErr(err, w)
 	if err == nil {
 		w.WriteHeader(201)
 		w.Write(NewResponseMessage("Video created successfully", false))
@@ -84,10 +84,10 @@ func (controller *VideoController) GetAll(w http.ResponseWriter, r *http.Request
 	videos := []models.Video{}
 	userId := mux.Vars(r)["user"]
 	err := controller.storage.FindByUser(userId, &videos)
-	checkErr(err)
+	checkErr(err, w)
 
 	data, err := json.Marshal(&videos)
-	checkErr(err)
+	checkErr(err, w)
 
 	if err == nil {
 		w.WriteHeader(200)
@@ -103,7 +103,7 @@ func (controller *VideoController) Put(w http.ResponseWriter, r *http.Request) {
 	filter := controller.getVideofilter(r)
 
 	video, err := controller.getVideo(r)
-	checkErr(err)
+	checkErr(err, w)
 	controller.storage.Update(filter, &video)
 	if err == nil {
 		w.WriteHeader(200)
