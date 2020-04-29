@@ -55,7 +55,13 @@ func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(video)
 	checkErr(err)
 
-	w.Write(data)
+	if err == nil {
+		w.WriteHeader(200)
+		w.Write(data)
+	} else {
+		w.WriteHeader(500)
+		w.Write(NewResponseMessage("Error to try get video", true))
+	}
 }
 
 func (controller *VideoController) Post(w http.ResponseWriter, r *http.Request) {
@@ -64,8 +70,14 @@ func (controller *VideoController) Post(w http.ResponseWriter, r *http.Request) 
 
 	err = controller.storage.Save(&video)
 	checkErr(err)
+	if err == nil {
+		w.WriteHeader(201)
+		w.Write(NewResponseMessage("Video created successfully", false))
+	} else {
+		w.WriteHeader(400)
+		w.Write(NewResponseMessage("Error to try create video", true))
+	}
 
-	w.Write(NewResponseMessage("Video created successfully", false))
 }
 
 func (controller *VideoController) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +89,13 @@ func (controller *VideoController) GetAll(w http.ResponseWriter, r *http.Request
 	data, err := json.Marshal(&videos)
 	checkErr(err)
 
-	w.Write(data)
+	if err == nil {
+		w.WriteHeader(200)
+		w.Write(data)
+	} else {
+		w.WriteHeader(500)
+		w.Write(NewResponseMessage("Error to try get videos", true))
+	}
 
 }
 
@@ -87,7 +105,13 @@ func (controller *VideoController) Put(w http.ResponseWriter, r *http.Request) {
 	video, err := controller.getVideo(r)
 	checkErr(err)
 	controller.storage.Update(filter, &video)
-	w.Write(NewResponseMessage("Video updated successfully", false))
+	if err == nil {
+		w.WriteHeader(200)
+		w.Write(NewResponseMessage("Video updated successfully", false))
+	} else {
+		w.WriteHeader(400)
+		w.Write(NewResponseMessage("Error to try update video", true))
+	}
 
 }
 
@@ -95,8 +119,10 @@ func (controller *VideoController) Delete(w http.ResponseWriter, r *http.Request
 	filter := controller.getVideofilter(r)
 
 	if controller.storage.Delete(filter) {
+		w.WriteHeader(200)
 		w.Write(NewResponseMessage("Video deleted succesfully", false))
 	} else {
+		w.WriteHeader(400)
 		w.Write(NewResponseMessage("Delete video failed ", true))
 	}
 }
