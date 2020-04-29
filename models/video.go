@@ -71,7 +71,7 @@ func (storage *VideoStorage) Find(pointer interface{}) error {
 
 	}
 
-	return errors.New("Invalid user slice pointer ")
+	return videoErr
 
 }
 
@@ -92,9 +92,11 @@ func (storage *VideoStorage) FindOne(condition map[string]interface{}, pointer i
 			break
 		}
 
+		return err
+
 	}
 
-	return err
+	return videoErr
 }
 
 func (storage *VideoStorage) FindByUser(id string, pointer interface{}) error {
@@ -110,14 +112,15 @@ func (storage *VideoStorage) FindByUser(id string, pointer interface{}) error {
 			CheckError(err)
 
 			*videos = append(*videos, video)
+
 		}
 
 		pointer = &videos
-		return err
 
+		return err
 	}
 
-	return errors.New("Invalid user slice pointer ")
+	return videoErr
 }
 func (storage *VideoStorage) Save(data interface{}) error {
 	if video, ok := data.(*Video); ok {
@@ -134,7 +137,7 @@ func (storage *VideoStorage) Save(data interface{}) error {
 		return err
 
 	}
-	return nil
+	return videoErr
 
 }
 func (storage *VideoStorage) getPath(filename string, context int) (string, error) {
@@ -190,7 +193,7 @@ func (storage *VideoStorage) Update(condition map[string]interface{}, data inter
 		return err
 	}
 
-	return nil
+	return videoErr
 }
 
 func (storage *VideoStorage) deleteContent(condition map[string]interface{}) {

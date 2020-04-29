@@ -56,9 +56,7 @@ func (controller *UserController) Get(w http.ResponseWriter, r *http.Request) {
 	filter := map[string]interface{}{"id": id}
 	user := models.User{}
 	err := controller.storage.FindOne(filter, &user)
-	if err != nil {
-		fmt.Println(err)
-	}
+
 	data, err := json.Marshal(&user)
 
 	if err != nil {

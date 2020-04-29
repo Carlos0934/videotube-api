@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -53,11 +52,11 @@ func (storage *UserStorage) Find(pointer interface{}) error {
 		}
 
 		pointer = &users
-		return nil
+		return err
 
 	}
 
-	return errors.New("Invalid user slice pointer ")
+	return userErr
 
 }
 
@@ -79,7 +78,7 @@ func (storage *UserStorage) FindOne(condition map[string]interface{}, pointer in
 
 	}
 
-	return nil
+	return userErr
 }
 
 func (storage *UserStorage) Save(data interface{}) error {
@@ -97,7 +96,7 @@ func (storage *UserStorage) Save(data interface{}) error {
 		return err
 
 	}
-	return nil
+	return userErr
 
 }
 
@@ -114,7 +113,7 @@ func (storage *UserStorage) Update(condition map[string]interface{}, data interf
 
 	}
 
-	return nil
+	return userErr
 }
 
 func (storage *UserStorage) Delete(condition map[string]interface{}) bool {
