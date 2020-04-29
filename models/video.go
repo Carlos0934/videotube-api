@@ -23,8 +23,8 @@ type Video struct {
 }
 
 const (
-	ContentCover int = 0
-	ContentVideo int = 1
+	ContentCover string = "cover"
+	ContentVideo string = "video"
 )
 
 type VideoStorage struct {
@@ -140,11 +140,11 @@ func (storage *VideoStorage) Save(data interface{}) error {
 	return videoErr
 
 }
-func (storage *VideoStorage) getPath(filename string, context int) (string, error) {
+func (storage *VideoStorage) getPath(filename string, context string) (string, error) {
 	path := ""
-	if context == 0 {
+	if context == "cover" {
 		path = storage.CoverDir + filename
-	} else if context == 1 {
+	} else if context == "video" {
 		path = storage.VideoDir + filename
 	} else {
 
@@ -153,7 +153,7 @@ func (storage *VideoStorage) getPath(filename string, context int) (string, erro
 
 	return path, nil
 }
-func (storage *VideoStorage) SerializeContent(content []byte, filename string, context int) string {
+func (storage *VideoStorage) SerializeContent(content []byte, filename string, context string) string {
 
 	hash := sha256.Sum256([]byte(string(content) + filename + time.Now().String()))
 
@@ -171,7 +171,7 @@ func (storage *VideoStorage) SerializeContent(content []byte, filename string, c
 	return newFilename
 }
 
-func (storage *VideoStorage) DeserializeContent(filename string, context int) []byte {
+func (storage *VideoStorage) DeserializeContent(filename string, context string) []byte {
 	path, err := storage.getPath(filename, context)
 	CheckError(err)
 

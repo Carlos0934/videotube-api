@@ -43,10 +43,11 @@ func (controller *VideoController) getVideofilter(r *http.Request) map[string]in
 }
 
 func (controller *VideoController) SetupRouter(server *mux.Router) {
+	server.HandleFunc("static/{content}/{filename}", controller.GetVideo)
 	controller.SetupRouterAPI(server, controller)
 }
 
-func (controller *VideoController) getContent(content int, key string, r *http.Request) string {
+func (controller *VideoController) getContent(content string, key string, r *http.Request) string {
 	err := r.ParseMultipartForm(30 << 20)
 	if err != nil {
 		fmt.Println(err)
@@ -63,11 +64,12 @@ func (controller *VideoController) getContent(content int, key string, r *http.R
 		fmt.Println(err)
 	}
 
-	url := controller.storage.SerializeContent(data, header.Filename, content)
+	filename := controller.storage.SerializeContent(data, header.Filename, content)
 	if err != nil {
 		fmt.Println(err)
 	}
 
+	url := fmt.Sprintf("%v/%v/%v/%v", r.Host, "static", content, filename)
 	return url
 
 }
@@ -167,16 +169,11 @@ func (controller *VideoController) Delete(w http.ResponseWriter, r *http.Request
 }
 
 func (controller *VideoController) GetVideo(w http.ResponseWriter, r *http.Request) {
-	content := r.URL.Query().Get("content")
+	content := mux.Vars(r)["content"]
 
-	filename := r.URL.Query().Get("filename")
+	filename := mux.Vars(r)["filename"]
 
-	context := 0
-
-	if content == "video" {
-		context = 1
-	}
-	data := controller.storage.DeserializeContent(filename, context)
+	data := controller.storage.DeserializeContent(filename, content)
 
 	w.Write(data)
 }
