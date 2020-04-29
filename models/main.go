@@ -1,11 +1,11 @@
 package models
 
 import (
-	"log"
+	"fmt"
 )
 
 func CheckError(err error) {
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 }

@@ -32,6 +32,7 @@ func (middleware *UserMiddleware) AuthMiddleware(next http.Handler) http.Handler
 			next.ServeHTTP(w, r)
 
 		} else {
+			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write(NewResponseMessage("Invalid Token Try again", false))
 		}

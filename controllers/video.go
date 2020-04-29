@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/carlos0934/videotube/models"
 	"github.com/gorilla/mux"
@@ -23,8 +24,12 @@ func NewVideoController(conn *sql.DB) *VideoController {
 
 func (controller *VideoController) getVideo(r *http.Request) (models.Video, error) {
 	video := models.Video{}
-
-	err := json.NewDecoder(r.Body).Decode(&video)
+	ID, err := strconv.Atoi(mux.Vars(r)["user"])
+	if err != nil {
+		return video, err
+	}
+	video.UserID = ID
+	err = json.NewDecoder(r.Body).Decode(&video)
 
 	return video, err
 }
@@ -32,7 +37,7 @@ func (controller *VideoController) getVideo(r *http.Request) (models.Video, erro
 func (controller *VideoController) getVideofilter(r *http.Request) map[string]interface{} {
 	ids := mux.Vars(r)
 
-	return map[string]interface{}{"id": ids["user"], "user_id": ids["video"]}
+	return map[string]interface{}{"id": ids["video"], "user_id": ids["user"]}
 }
 func (controller *VideoController) SetupRouter(server *mux.Router) {
 	controller.SetupRouterAPI(server, controller)
@@ -40,9 +45,10 @@ func (controller *VideoController) SetupRouter(server *mux.Router) {
 
 func (controller *VideoController) Get(w http.ResponseWriter, r *http.Request) {
 
-	video := &models.VideoStorage{}
+	video := &models.Video{}
 
 	filter := controller.getVideofilter(r)
+
 	err := controller.storage.FindOne(filter, video)
 	checkErr(err)
 
@@ -63,12 +69,12 @@ func (controller *VideoController) Post(w http.ResponseWriter, r *http.Request) 
 }
 
 func (controller *VideoController) GetAll(w http.ResponseWriter, r *http.Request) {
-	videos := []models.VideoStorage{}
+	videos := []models.Video{}
 	userId := mux.Vars(r)["user"]
 	err := controller.storage.FindByUser(userId, &videos)
 	checkErr(err)
 
-	data, err := json.Marshal(videos)
+	data, err := json.Marshal(&videos)
 	checkErr(err)
 
 	w.Write(data)
@@ -89,8 +95,8 @@ func (controller *VideoController) Delete(w http.ResponseWriter, r *http.Request
 	filter := controller.getVideofilter(r)
 
 	if controller.storage.Delete(filter) {
-		w.Write(NewResponseMessage("Video updated deleted", false))
+		w.Write(NewResponseMessage("Video deleted succesfully", false))
 	} else {
-		w.Write(NewResponseMessage("Delete video failed ", false))
+		w.Write(NewResponseMessage("Delete video failed ", true))
 	}
 }

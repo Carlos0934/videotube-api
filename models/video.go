@@ -52,6 +52,7 @@ func (storage *VideoStorage) GetConnection(conn *sql.DB) {
 func (storage *VideoStorage) Find(pointer interface{}) error {
 
 	if videos, ok := pointer.(*[]Video); ok {
+
 		stmt, err := storage.conn.Prepare("SELECT * FROM videos WHERE   ")
 		CheckError(err)
 
@@ -66,7 +67,7 @@ func (storage *VideoStorage) Find(pointer interface{}) error {
 		}
 
 		pointer = &videos
-		return nil
+		return err
 
 	}
 
@@ -93,7 +94,7 @@ func (storage *VideoStorage) FindOne(condition map[string]interface{}, pointer i
 
 	}
 
-	return nil
+	return err
 }
 
 func (storage *VideoStorage) FindByUser(id string, pointer interface{}) error {
@@ -112,7 +113,7 @@ func (storage *VideoStorage) FindByUser(id string, pointer interface{}) error {
 		}
 
 		pointer = &videos
-		return nil
+		return err
 
 	}
 
@@ -120,14 +121,17 @@ func (storage *VideoStorage) FindByUser(id string, pointer interface{}) error {
 }
 func (storage *VideoStorage) Save(data interface{}) error {
 	if video, ok := data.(*Video); ok {
-		stmt, err := storage.conn.Prepare("INSERT INTO videos (url, likes, dislikes, user_id,  title, cover) VALUES (? ,? , ? , ?, ? , ? )")
+
+		stmt, err := storage.conn.Prepare("INSERT INTO videos (url, user_id,  title, cover) VALUES (? ,? , ? , ?)")
 		CheckError(err)
 
-		result, err := stmt.Exec(video.URL, &video.Likes, &video.Dislikes, &video.UserID, &video.Title, &video.Cover)
+		result, err := stmt.Exec(video.URL, &video.UserID, &video.Title, &video.Cover)
 		CheckError(err)
 
 		_, err = result.LastInsertId()
 		CheckError(err)
+
+		return err
 
 	}
 	return nil
@@ -175,15 +179,15 @@ func (storage *VideoStorage) DeserializeContent(filename string, context int) []
 
 func (storage *VideoStorage) Update(condition map[string]interface{}, data interface{}) error {
 
-	if video, ok := data.(Video); ok {
-		stmt, err := storage.conn.Prepare("UPDATE videos SET url = ?, likes = ?, dislikes = ?, user_id = ?,  title = ?, cover = ?   WHERE id =  ? ")
+	if video, ok := data.(*Video); ok {
+		stmt, err := storage.conn.Prepare("UPDATE videos SET  likes = ?, dislikes = ?,   title = ?    WHERE id =  ? ")
 		CheckError(err)
-		result, err := stmt.Exec(&video.URL, &video.Likes, &video.Dislikes, &video.UserID, &video.Title, &video.Cover, condition["id"])
+		result, err := stmt.Exec(&video.Likes, &video.Dislikes, &video.Title, condition["id"])
 		CheckError(err)
 
 		_, err = result.LastInsertId()
 		CheckError(err)
-
+		return err
 	}
 
 	return nil

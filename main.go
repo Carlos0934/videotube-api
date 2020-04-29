@@ -19,9 +19,9 @@ func BuildContainer() *controllers.AppServer {
 	conn := db.MysqlConnector("root@/videotube")
 	key := auth.GetECPrivateKey("key.pem", "public.pem")
 	userController := controllers.NewUserController(conn, key)
-
+	videoController := controllers.NewVideoController(conn)
 	app := controllers.NewAppServer()
-	app.AddRouter(userController)
+	app.AddRouter(userController, videoController)
 
 	return app
 }
