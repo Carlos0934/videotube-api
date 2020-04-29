@@ -76,9 +76,10 @@ func (storage *VideoStorage) Find(pointer interface{}) error {
 
 func (storage *VideoStorage) FindOne(condition map[string]interface{}, pointer interface{}) error {
 
-	stmt, err := storage.conn.Prepare("SELECT * FROM videos WHERE id = ")
+	query, data := storage.ParseQuery("SELECT * FROM videos", condition)
+	stmt, err := storage.conn.Prepare(query)
 	CheckError(err)
-	rows, err := stmt.Query(condition["id"])
+	rows, err := stmt.Query(data...)
 	CheckError(err)
 
 	if video, ok := pointer.(*Video); ok {

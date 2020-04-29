@@ -42,7 +42,7 @@ func (controller *UserController) addToken(w http.ResponseWriter, user models.Us
 	token := controller.auth.GenerateToken(user)
 	w.Header().Add("Authorization", token)
 }
-func (controller *UserController) getUser(w http.ResponseWriter, r *http.Request) models.User {
+func (controller *UserController) getUser(r *http.Request) models.User {
 	user := models.User{}
 	json.NewDecoder(r.Body).Decode(&user)
 
@@ -87,7 +87,7 @@ func (controller *UserController) GetAll(w http.ResponseWriter, r *http.Request)
 
 func (controller *UserController) Post(w http.ResponseWriter, r *http.Request) {
 
-	user := controller.getUser(w, r)
+	user := controller.getUser(r)
 	err := controller.storage.Save(&user)
 
 	if err != nil {
@@ -104,7 +104,7 @@ func (controller *UserController) Put(w http.ResponseWriter, r *http.Request) {
 
 	filter := map[string]interface{}{"id": id}
 
-	user := controller.getUser(w, r)
+	user := controller.getUser(r)
 	err := controller.storage.Update(filter, user)
 
 	if err != nil {
@@ -131,7 +131,7 @@ func (controller *UserController) Delete(w http.ResponseWriter, r *http.Request)
 
 func (controller *UserController) ValidateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-type", "application/json")
-	user := controller.getUser(w, r)
+	user := controller.getUser(r)
 	if user.Password == "" {
 		w.Write(NewResponseMessage("Password not provided", false))
 		return
