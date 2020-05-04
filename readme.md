@@ -11,17 +11,17 @@ You will need a EC (Elliptc Cuve) private key and public key pairs, with the fil
 
 ## Routes
 
-### Users  **/users** GET, POST
+#### Users  **/users** GET, POST
 
-### User **/users/{user-id}*** GET, PUT, DELETE
+#### User **/users/{user-id}*** GET, PUT, DELETE
 
-### Get New Token **/auth** Any
+#### Get New Token **/auth** Any
 
-### Videos **/users/{user-id}/videos** GET, POST
+#### Videos **/users/{user-id}/videos** GET, POST
 
-### Video **/users/{user-id}/videos{video-id}** GET, PUT, DELETE
+#### Video **/users/{user-id}/videos{video-id}** GET, PUT, DELETE
 
-### Upload Media Content **/upload{user-id}/{video-id}** POST
+#### Upload Media Content **/upload{user-id}/{video-id}** POST
 
 ### Get Media Content **/statict/{content}/{fileanme}** GET
 
