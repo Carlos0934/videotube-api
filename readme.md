@@ -23,7 +23,7 @@ You will need a EC (Elliptc Cuve) private key and public key pairs, with the fil
 
 #### Upload Media Content **/upload{user-id}/{video-id}** POST
 
-### Get Media Content **/statict/{content}/{fileanme}** GET
+#### Get Media Content **/statict/{content}/{fileanme}** GET
 
 
 ### Note
